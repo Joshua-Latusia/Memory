@@ -31,7 +31,7 @@ public class MemoryClient extends JPanel implements Finals
     private boolean myTurn;
     private int nrOfEmptyRows;
     private boolean twoCardsSelected;
-    private int noot = -1;
+    private int noot = 3000;
     private JTextArea area;
     private String text;
     private int playerNr;
@@ -62,7 +62,6 @@ public class MemoryClient extends JPanel implements Finals
                     //System.out.println("CLICKED AT: " + x + "----" + y);
                     getSelectedCard(x, y);
                     sendMove(x, y);
-
                 }
             }
         });
@@ -197,6 +196,7 @@ public class MemoryClient extends JPanel implements Finals
         // Get the other player's move
         int x = fromServer.readInt();
         int y = fromServer.readInt();
+
             System.out.println(x + "----" + y + " received");
         getSelectedCard(x,y);
     }
@@ -238,7 +238,7 @@ public class MemoryClient extends JPanel implements Finals
     public void checkCards()
     {
                 if (selectedCards.size() >= 2) {
-                    flipTimer = new Timer(500, new ActionListener() {
+                    flipTimer = new Timer(100, new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             try {
@@ -253,7 +253,9 @@ public class MemoryClient extends JPanel implements Finals
                                     board.get(card2.getY()).remove(card2);
                                     if (myTurn) {
                                         noot = MATCH_FOUND;
-                                        System.out.println("score ++");
+                                        toServer.writeInt(noot);
+                                        //toServer.writeInt(20);
+                                        System.out.println("MATCH_FOUND");
                                     }
                                     twoCardsSelected = false;
                                 } else {
@@ -261,13 +263,14 @@ public class MemoryClient extends JPanel implements Finals
                                     card2.flip();
                                     if (myTurn) {
                                         noot = NO_MATCH_FOUND;
-
+                                        toServer.writeInt(noot);
+                                        //toServer.writeInt(20);
                                         System.out.println("MATCH_NOT_FOUND");
                                     }
                                     selectedCards.clear();
                                     twoCardsSelected = false;
                                 }
-                                toServer.writeInt(noot);
+                                toServer.writeInt(IS_CHECKED);
                             }catch(Exception ew){ew.printStackTrace();}
                         }
                     });
@@ -310,6 +313,7 @@ public class MemoryClient extends JPanel implements Finals
                         receiveMove();
                         receiveMove();
                     }
+
                     if(status == DRAW)
                     {
                         int myScore = fromServer.readInt();

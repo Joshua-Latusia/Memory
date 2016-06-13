@@ -25,9 +25,7 @@ public class Server implements Finals, Runnable
     public void run()
     {
         try {
-            Integer[] colors = {1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8};
-            ArrayList<Integer> cardColors = new ArrayList<Integer>(Arrays.asList(colors));
-            Collections.shuffle(cardColors);
+
             // Create a server socket
             ServerSocket serverSocket = new ServerSocket(1337);
             System.out.println(new Date() +
@@ -40,37 +38,8 @@ public class Server implements Finals, Runnable
 
                 // Connect to player 1
                 Socket player1 = serverSocket.accept();
-
-                System.out.println(new Date() + ": Player 1 joined session "
-                        + sessionNo + '\n');
-                System.out.println("Player 1's IP address" +
-                        player1.getInetAddress().getHostAddress() + '\n');
-
-                // Notify that the player is Player 1
-                new DataOutputStream(
-                        player1.getOutputStream()).writeInt(PLAYER1);
-                System.out.println("wrote player nr to player 1");
-                        for(int i : cardColors)
-                        {
-                            new DataOutputStream(player1.getOutputStream()).writeInt(i);
-                        }
-
                 // Connect to player 2
                 Socket player2 = serverSocket.accept();
-
-                System.out.println(new Date() +
-                            ": Player 2 joined session " + sessionNo + '\n');
-                   System.out.println("Player 2's IP address" +
-                            player2.getInetAddress().getHostAddress() + '\n');
-
-                // Notify that the player is Player 2
-                new DataOutputStream(
-                        player2.getOutputStream()).writeInt(PLAYER2);
-
-                for(int i : cardColors)
-                {
-                    new DataOutputStream(player2.getOutputStream()).writeInt(i);
-                }
 
                 // Display this session and increment session number
                 System.out.println(new Date() +
@@ -120,10 +89,41 @@ public class Server implements Finals, Runnable
                         player2.getOutputStream());
 
 
+                Integer[] colors = {1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8};
+                ArrayList<Integer> cardColors = new ArrayList<Integer>(Arrays.asList(colors));
+                Collections.shuffle(cardColors);
+                System.out.println(new Date() + ": Player 1 joined session "
+                        + sessionNo + '\n');
+                System.out.println("Player 1's IP address" +
+                        player1.getInetAddress().getHostAddress() + '\n');
+                // Notify that the player is Player 1
+                new DataOutputStream(
+                        player1.getOutputStream()).writeInt(PLAYER1);
+                System.out.println("wrote player nr to player 1");
+                for(int i : cardColors)
+                {
+                    new DataOutputStream(player1.getOutputStream()).writeInt(i);
+                }
+
+                System.out.println(new Date() +
+                        ": Player 2 joined session " + sessionNo + '\n');
+                System.out.println("Player 2's IP address" +
+                        player2.getInetAddress().getHostAddress() + '\n');
+
+                // Notify that the player is Player 2
+                new DataOutputStream(
+                        player2.getOutputStream()).writeInt(PLAYER2);
+
+                for(int i : cardColors)
+                {
+                    new DataOutputStream(player2.getOutputStream()).writeInt(i);
+                }
+
                 while (playing)
                 {
-                    toPlayer1.writeInt(MY_TURN);
                     toPlayer2.writeInt(OPPONTENT_TURN);
+                    toPlayer1.writeInt(MY_TURN);
+
 
                     System.out.println("player1 turn :: player 2 not turn");
 
@@ -147,23 +147,20 @@ public class Server implements Finals, Runnable
 
                     System.out.println(" move 2 sent" + row2 + " -----" + column2);
 
-//                    boolean isMatchFound = fromPlayer1.readBoolean();
-//                    System.out.println(" boolean received: " + isMatchFound);
-//                    if(isMatchFound == true) {
-//                        player1Score++;
-//                        System.out.println("player 1 score++");
-//                    }
-
                     int noot1 = fromPlayer1.readInt();
+                    System.out.println(noot1 + " MATCHFOUND?");
                     if(noot1 == MATCH_FOUND)
                     {
-                        System.out.println("score++");
                         player1Score++;
                     }
 
+                    int isChecked = fromPlayer1.readInt();
+                    int isChecked2 = fromPlayer2.readInt();
 
-                    toPlayer2.writeInt(MY_TURN);
+                    System.out.println("is it checked cuck? " + isChecked + "------" + isChecked2);
                     toPlayer1.writeInt(OPPONTENT_TURN);
+                    toPlayer2.writeInt(MY_TURN);
+
 
                     System.out.println("player2 turn :: player 1 not turn");
 
@@ -195,8 +192,12 @@ public class Server implements Finals, Runnable
 //                    }
 
                     int noot2 = fromPlayer2.readInt();
+                    System.out.println(noot1 + "MATCHFOUND?");
                     if(noot2 == MATCH_FOUND)
                         player2Score++;
+
+                    int isChecked3 = fromPlayer1.readInt();
+                    int isChecked4 = fromPlayer2.readInt();
 
                     System.out.println(" PLAYERSCORES: " + player1Score + "----" + player2Score);
 

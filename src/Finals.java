@@ -12,5 +12,6 @@ public interface Finals
     final int DRAW = 4;
     final int PLAYER1_WON = 5;
     final int PLAYER2_WON = 6;
+    final int IS_CHECKED = 20;
 
 }
