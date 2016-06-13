@@ -31,7 +31,7 @@ public class Server implements Finals, Runnable
             // Create a server socket
             ServerSocket serverSocket = new ServerSocket(1337);
             System.out.println(new Date() +
-                    ": Server started at socket 8000\n");
+                    ": Server started at socket 1337\n");
 
             // Ready to create a session for every two players
             while (true) {

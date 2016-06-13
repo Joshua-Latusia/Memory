@@ -1,18 +1,20 @@
 
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.xml.crypto.Data;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,6 +35,10 @@ public class MemoryClient extends JPanel implements Finals
     private JTextArea area;
     private String text;
     private int playerNr;
+    private long oldTime = 0;
+    private final double animationTimer;
+    private MyTimer timer;
+    private int i;
 
     public MemoryClient()
     {
@@ -46,6 +52,7 @@ public class MemoryClient extends JPanel implements Finals
         board = new ArrayList<>();
         board.add(new ArrayList<Card>());
         myTurn = false;
+        animationTimer = 1000;
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -55,6 +62,7 @@ public class MemoryClient extends JPanel implements Finals
                     //System.out.println("CLICKED AT: " + x + "----" + y);
                     getSelectedCard(x, y);
                     sendMove(x, y);
+
                 }
             }
         });
@@ -216,7 +224,6 @@ public class MemoryClient extends JPanel implements Finals
                             card.flip();
                             selectedCards.add(card);
                             repaint();
-                            //try{Thread.sleep(1000);}catch(Exception e){e.printStackTrace();}
                             checkCards();
                             break;
                         }
@@ -224,42 +231,48 @@ public class MemoryClient extends JPanel implements Finals
                 }
             }
         }
-
-        //checkCardTimer = new Timer(500, e -> checkCards());
-        //checkCardTimer.start();
     }
+
+    Timer flipTimer = null;
 
     public void checkCards()
     {
+                if (selectedCards.size() >= 2) {
+                    flipTimer = new Timer(500, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                flipTimer.stop();
+                                twoCardsSelected = true;
+                                Card card1 = selectedCards.get(0);
+                                Card card2 = selectedCards.get(1);
 
-        try {
-            if (selectedCards.size() >= 2) {
-                twoCardsSelected = true;
-                Card card1 = selectedCards.get(0);
-                Card card2 = selectedCards.get(1);
+                                if (card1.compareTo(card2) == 1) {
+                                    selectedCards.clear();
+                                    board.get(card1.getY()).remove(card1);
+                                    board.get(card2.getY()).remove(card2);
+                                    if (myTurn) {
+                                        noot = MATCH_FOUND;
+                                        System.out.println("score ++");
+                                    }
+                                    twoCardsSelected = false;
+                                } else {
+                                    card1.flip();
+                                    card2.flip();
+                                    if (myTurn) {
+                                        noot = NO_MATCH_FOUND;
 
-                if (card1.compareTo(card2) == 1) {
-                    selectedCards.clear();
-                    board.get(card1.getY()).remove(card1);
-                    board.get(card2.getY()).remove(card2);
-                    if (myTurn) {
-                        noot = MATCH_FOUND;
-                        System.out.println("score ++");
-                        toServer.writeInt(noot);
-                    }
-                    twoCardsSelected = false;
-                } else {
-                    card1.flip();
-                    card2.flip();
-                    if(myTurn) {
-                        noot = NO_MATCH_FOUND;
-                        toServer.writeInt(noot);
-                    }
-                    selectedCards.clear();
-                    twoCardsSelected = false;
+                                        System.out.println("MATCH_NOT_FOUND");
+                                    }
+                                    selectedCards.clear();
+                                    twoCardsSelected = false;
+                                }
+                                toServer.writeInt(noot);
+                            }catch(Exception ew){ew.printStackTrace();}
+                        }
+                    });
+                    flipTimer.start();
                 }
-            }
-        }catch(Exception e){e.printStackTrace();}
     }
 
     public int getPlayerNr() {
